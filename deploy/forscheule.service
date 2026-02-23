@@ -1,0 +1,15 @@
+[Unit]
+Description=ForschEule daily paper suggestions
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/ABS/PATH/TO/ForschEule
+EnvironmentFile=/ABS/PATH/TO/ForschEule/.env
+ExecStart=/ABS/PATH/TO/ForschEule/.venv/bin/python -m forscheule run-daily
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ForschEule</title>
+  <style>
+    :root {
+      --bg: #f8f9fa; --card: #fff; --border: #dee2e6; --primary: #2563eb;
+      --primary-hover: #1d4ed8; --text: #1a1a1a; --muted: #6b7280;
+      --success: #16a34a; --danger: #dc2626; --warning: #d97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           background: var(--bg); color: var(--text); line-height: 1.5; }
+    .container { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    h1 span { font-size: 0.85rem; color: var(--muted); font-weight: normal; margin-left: 0.5rem; }
+    h2 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin: 1.25rem 0 1rem; }
+    .tab { padding: 0.5rem 1.25rem; cursor: pointer; border: none; background: none;
+           font-size: 0.9rem; color: var(--muted); border-bottom: 2px solid transparent;
+           margin-bottom: -2px; transition: all 0.15s; }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+            padding: 1.25rem; margin-bottom: 1rem; }
+
+    /* Forms */
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
+    input[type="text"], input[type="number"], input[type="date"], select, textarea {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.9rem; font-family: inherit; height: 40px; }
+    textarea { resize: vertical; min-height: 80px; font-family: monospace; font-size: 0.85rem;
+               height: auto; }
+
+    /* Form row layout */
+    .form-row { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+    .form-field { flex: 1; min-width: 120px; }
+    .form-field label { margin-bottom: 0.25rem; }
+    .form-field input,
+    .form-field select { margin-bottom: 0; }
+    .form-actions { display: flex; align-items: flex-end; }
+    .form-actions button { white-space: nowrap; }
+    @media (max-width: 600px) {
+      .form-row { flex-direction: column; gap: 0.75rem; }
+      .form-field { min-width: 0; width: 100%; }
+      .form-actions { width: 100%; }
+      .form-actions button { width: 100%; }
+    }
+
+    /* Buttons */
+    button, .btn { padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer;
+                   font-size: 0.85rem; font-weight: 600; transition: background 0.15s;
+                   height: 40px; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+    /* Results table */
+    .results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .results-table th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--border);
+                        font-size: 0.75rem; text-transform: uppercase; color: var(--muted); }
+    .results-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border);
+                        vertical-align: top; }
+    .results-table tr:hover { background: #f1f5f9; }
+    .paper-title { font-weight: 600; }
+    .paper-title a { color: var(--primary); text-decoration: none; }
+    .paper-title a:hover { text-decoration: underline; }
+    .paper-meta { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px;
+             font-size: 0.7rem; font-weight: 600; }
+    .badge-pubmed { background: #dbeafe; color: #1e40af; }
+    .badge-arxiv { background: #fef3c7; color: #92400e; }
+    .matched-term { display: inline-block; padding: 0.1rem 0.4rem; background: #ecfdf5;
+                    color: #065f46; border-radius: 4px; font-size: 0.7rem; margin: 0.1rem; }
+    .score { font-weight: 700; font-size: 0.9rem; }
+    .abstract-toggle { color: var(--primary); cursor: pointer; font-size: 0.78rem;
+                       border: none; background: none; padding: 0; }
+    .abstract-text { display: none; margin-top: 0.4rem; font-size: 0.82rem; color: #374151;
+                     line-height: 1.6; padding: 0.5rem; background: #f9fafb; border-radius: 4px; }
+    .abstract-text.show { display: block; }
+
+    /* Status */
+    .status { padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; margin-bottom: 0.75rem;
+              display: none; }
+    .status.show { display: block; }
+    .status-info { background: #dbeafe; color: #1e40af; }
+    .status-success { background: #dcfce7; color: #166534; }
+    .status-error { background: #fee2e2; color: #991b1b; }
+    .status-running { background: #fef3c7; color: #92400e; }
+
+    .empty { text-align: center; padding: 2rem; color: var(--muted); }
+
+    /* Job status area */
+    #jobStatus { margin-top: 0.75rem; }
+
+    /* Digest cards */
+    .digest-section { margin-bottom: 1rem; }
+    .digest-section h3 { font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--primary); }
+    .digest-section ul, .digest-section ol { padding-left: 1.5rem; }
+    .digest-section li { font-size: 0.85rem; margin-bottom: 0.3rem; }
+    .digest-meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>ForschEule <span>Daily Paper Recommendations</span></h1>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="results">Results</button>
+    <button class="tab" data-tab="jobs">Run Pipeline</button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- RESULTS TAB -->
+  <div id="results" class="tab-content active">
+    <div class="card">
+      <div class="form-row">
+        <div class="form-field">
+          <label for="dateInput">Date</label>
+          <input type="date" id="dateInput" value="{{ today }}">
+        </div>
+        <div class="form-field">
+          <label for="topkInput">Top K</label>
+          <input type="number" id="topkInput" value="{{ top_k }}" min="1" max="50">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="loadResults()">Load</button>
+        </div>
+      </div>
+    </div>
+    <div id="resultsArea"></div>
+
+    <!-- Weekly Summary Panel -->
+    <div class="card" id="summaryPanel">
+      <h2>Weekly Summary</h2>
+      {% if not openai_configured %}
+      <div class="status show status-info">
+        {{ openai_reason }}
+      </div>
+      {% else %}
+      <div class="form-row">
+        <div class="form-field">
+          <label for="summaryDate">Date</label>
+          <input type="date" id="summaryDate" value="{{ today }}">
+        </div>
+        <div class="form-field">
+          <label for="summaryWindow">Window</label>
+          <input type="number" id="summaryWindow" value="7" min="1" max="30">
+        </div>
+        <div class="form-field">
+          <label for="summaryTopN">Top K</label>
+          <input type="number" id="summaryTopN" value="10" min="1" max="50">
+        </div>
+        <div class="form-field">
+          <label for="paperModel">Paper Model</label>
+          <select id="paperModel">
+            <option value="gpt-5-mini" selected>gpt-5-mini</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="synthesisModel">Synthesis Model</label>
+          <select id="synthesisModel">
+            <option value="gpt-5.2" selected>gpt-5.2</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="generateSummary()">Generate Summary</button>
+        </div>
+      </div>
+      <div id="summaryStatus" style="margin-top:0.75rem;"></div>
+      <div id="digestArea" style="margin-top:1rem;"></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- JOBS TAB -->
+  <div id="jobs" class="tab-content">
+    <div class="card">
+      <h2>Run Daily</h2>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="dailyWindow">Window (days)</label>
+          <input type="number" id="dailyWindow" value="7" min="1" max="60">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="triggerRunDaily()">Run Daily</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Backfill</h2>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="backfillDays">Days</label>
+          <input type="number" id="backfillDays" value="3" min="1" max="90">
+        </div>
+        <div class="form-field">
+          <label for="backfillWindow">Window (days)</label>
+          <input type="number" id="backfillWindow" value="7" min="1" max="60">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="triggerBackfill()">Backfill</button>
+        </div>
+      </div>
+    </div>
+    <div id="jobStatus"></div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="settings" class="tab-content">
+    <div class="card">
+      <h2>Lab Profile</h2>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;">
+        Describes your lab's research focus. Used for semantic ranking via MedCPT embeddings.</p>
+      <textarea id="labProfileInput" rows="5">{{ lab_profile }}</textarea>
+
+      <h2>Boosted Phrases</h2>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;">
+        One phrase per line. Papers matching these get a score boost.</p>
+      <textarea id="boostedPhrasesInput" rows="8">{{ boosted_phrases_text }}</textarea>
+
+      <h2>Default Top K</h2>
+      <input type="number" id="defaultTopK" value="{{ top_k }}" min="1" max="50"
+             style="width:100px;">
+
+      <div style="margin-top:1rem;">
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        <span id="settingsStatus" style="margin-left:1rem;font-size:0.85rem;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Tabs ── */
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── Results ── */
+function loadResults() {
+  const d = document.getElementById('dateInput').value;
+  const k = document.getElementById('topkInput').value;
+  const area = document.getElementById('resultsArea');
+  area.innerHTML = '<div class="empty">Loading...</div>';
+  fetch(`/daily?date=${d}&top_k=${k}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.length) { area.innerHTML = '<div class="empty">No results for this date.</div>'; return; }
+      let html = `<table class="results-table"><thead><tr>
+        <th>#</th><th>Score</th><th>Paper</th><th>Source</th><th>Published</th>
+      </tr></thead><tbody>`;
+      data.forEach((p, idx) => {
+        const badge = p.source === 'pubmed'
+          ? '<span class="badge badge-pubmed">PubMed</span>'
+          : '<span class="badge badge-arxiv">arXiv</span>';
+        const terms = (p.matched_terms || []).map(t => `<span class="matched-term">${esc(t)}</span>`).join(' ');
+        const doiLink = p.doi ? ` | <a href="https://doi.org/${esc(p.doi)}" target="_blank" rel="noopener">DOI</a>` : '';
+        html += `<tr>
+          <td>${p.rank}</td>
+          <td class="score">${p.score.toFixed(4)}</td>
+          <td>
+            <div class="paper-title"><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a></div>
+            <div class="paper-meta">${esc(p.authors || '')}${doiLink}</div>
+            ${terms ? '<div style="margin-top:0.3rem">' + terms + '</div>' : ''}
+            <button class="abstract-toggle" onclick="this.nextElementSibling.classList.toggle('show')">
+              Show abstract
+            </button>
+            <div class="abstract-text">${esc(p.abstract || 'No abstract available.')}</div>
+          </td>
+          <td>${badge}</td>
+          <td style="white-space:nowrap">${esc(p.published_at || '—')}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      area.innerHTML = html;
+    })
+    .catch(err => { area.innerHTML = `<div class="status show status-error">Error: ${esc(err.message)}</div>`; });
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+/* ── Jobs ── */
+let pollTimer = null;
+function showJobStatus(msg, cls) {
+  const el = document.getElementById('jobStatus');
+  el.innerHTML = `<div class="status show ${cls}">${msg}</div>`;
+}
+
+function triggerRunDaily() {
+  const w = document.getElementById('dailyWindow').value;
+  showJobStatus('Starting run-daily...', 'status-running');
+  fetch('/jobs/run-daily', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({window: parseInt(w)})
+  }).then(r => r.json()).then(data => {
+    if (data.error) { showJobStatus(data.error, 'status-error'); return; }
+    pollJob(data.job_id);
+  }).catch(err => showJobStatus('Request failed: ' + err.message, 'status-error'));
+}
+
+function triggerBackfill() {
+  const d = document.getElementById('backfillDays').value;
+  const w = document.getElementById('backfillWindow').value;
+  showJobStatus('Starting backfill...', 'status-running');
+  fetch('/jobs/backfill', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({days: parseInt(d), window: parseInt(w)})
+  }).then(r => r.json()).then(data => {
+    if (data.error) { showJobStatus(data.error, 'status-error'); return; }
+    pollJob(data.job_id);
+  }).catch(err => showJobStatus('Request failed: ' + err.message, 'status-error'));
+}
+
+function pollJob(jobId) {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => {
+    fetch(`/jobs/${jobId}`).then(r => r.json()).then(data => {
+      if (data.status === 'running') {
+        showJobStatus(`Job ${jobId}: running... (${data.type})`, 'status-running');
+      } else if (data.status === 'success') {
+        showJobStatus(`Job ${jobId}: completed successfully.`, 'status-success');
+        clearInterval(pollTimer); pollTimer = null;
+      } else if (data.status === 'failed') {
+        showJobStatus(`Job ${jobId}: failed — ${data.error || 'unknown error'}`, 'status-error');
+        clearInterval(pollTimer); pollTimer = null;
+      } else {
+        showJobStatus(`Job ${jobId}: ${data.status}`, 'status-info');
+      }
+    }).catch(() => { clearInterval(pollTimer); pollTimer = null; });
+  }, 2000);
+}
+
+/* ── Settings ── */
+function saveSettings() {
+  const body = {
+    lab_profile: document.getElementById('labProfileInput').value,
+    boosted_phrases: document.getElementById('boostedPhrasesInput').value
+      .split('\n').map(s => s.trim()).filter(Boolean),
+    top_k: parseInt(document.getElementById('defaultTopK').value) || 5
+  };
+  const st = document.getElementById('settingsStatus');
+  st.textContent = 'Saving...';
+  st.style.color = 'var(--muted)';
+  fetch('/settings', {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  }).then(r => r.json()).then(data => {
+    if (data.status === 'ok') {
+      st.textContent = 'Saved!';
+      st.style.color = 'var(--success)';
+    } else {
+      st.textContent = 'Error: ' + (data.error || 'unknown');
+      st.style.color = 'var(--danger)';
+    }
+  }).catch(err => { st.textContent = 'Failed: ' + err.message; st.style.color = 'var(--danger)'; });
+}
+
+/* ── Weekly Summary ── */
+function generateSummary() {
+  const body = {
+    date: document.getElementById('summaryDate').value,
+    window: parseInt(document.getElementById('summaryWindow').value),
+    top_n: parseInt(document.getElementById('summaryTopN').value),
+    paper_model: document.getElementById('paperModel').value,
+    synthesis_model: document.getElementById('synthesisModel').value,
+  };
+  const statusEl = document.getElementById('summaryStatus');
+  statusEl.innerHTML = '<div class="status show status-running">Generating summary... This may take a minute.</div>';
+  document.getElementById('digestArea').innerHTML = '';
+
+  fetch('/jobs/summary-weekly', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  }).then(r => r.json()).then(data => {
+    if (data.error) {
+      statusEl.innerHTML = `<div class="status show status-error">${esc(data.error)}</div>`;
+      return;
+    }
+    pollSummaryJob(data.job_id, body);
+  }).catch(err => {
+    statusEl.innerHTML = `<div class="status show status-error">Request failed: ${esc(err.message)}</div>`;
+  });
+}
+
+function pollSummaryJob(jobId, params) {
+  const statusEl = document.getElementById('summaryStatus');
+  const timer = setInterval(() => {
+    fetch(`/jobs/${jobId}`).then(r => r.json()).then(data => {
+      if (data.status === 'running') {
+        statusEl.innerHTML = '<div class="status show status-running">Summary generation in progress...</div>';
+      } else if (data.status === 'success') {
+        clearInterval(timer);
+        statusEl.innerHTML = '<div class="status show status-success">Summary generated!</div>';
+        loadDigest(params);
+      } else if (data.status === 'failed') {
+        clearInterval(timer);
+        statusEl.innerHTML = `<div class="status show status-error">Failed: ${esc(data.error || 'unknown')}</div>`;
+      }
+    }).catch(() => clearInterval(timer));
+  }, 3000);
+}
+
+function loadDigest(params) {
+  const qs = new URLSearchParams({
+    date: params.date,
+    window: params.window,
+    top_n: params.top_n,
+    paper_model: params.paper_model,
+    synthesis_model: params.synthesis_model,
+  });
+  fetch(`/weekly-summary?${qs}`).then(r => r.json()).then(data => {
+    if (data.error) {
+      document.getElementById('digestArea').innerHTML =
+        `<div class="status show status-error">${esc(data.error)}</div>`;
+      return;
+    }
+    renderDigest(data);
+  });
+}
+
+function renderDigest(data) {
+  const d = data.digest;
+  let html = '';
+  html += '<div class="digest-section"><h3>Themes</h3><ul>';
+  (d.themes || []).forEach(t => { html += `<li>${esc(t)}</li>`; });
+  html += '</ul></div>';
+  html += '<div class="digest-section"><h3>Contradictions / Tensions</h3><ul>';
+  (d.contradictions_or_tensions || []).forEach(t => { html += `<li>${esc(t)}</li>`; });
+  html += '</ul></div>';
+  html += '<div class="digest-section"><h3>What to Read First</h3><ol>';
+  (d.what_to_read_first || []).forEach(item => {
+    html += `<li><strong>${esc(item.paper_id)}</strong>: ${esc(item.reason)}</li>`;
+  });
+  html += '</ol></div>';
+  html += '<div class="digest-section"><h3>Methods Trends</h3><ul>';
+  (d.methods_trends || []).forEach(t => { html += `<li>${esc(t)}</li>`; });
+  html += '</ul></div>';
+  html += '<div class="digest-section"><h3>Recommended Next Queries</h3><ul>';
+  (d.recommended_next_queries || []).forEach(t => { html += `<li>${esc(t)}</li>`; });
+  html += '</ul></div>';
+  html += `<div class="digest-meta">Generated: ${esc(data.created_at)} | Models: ${esc(data.paper_model)} + ${esc(data.synthesis_model)}</div>`;
+  document.getElementById('digestArea').innerHTML = html;
+}
+
+/* Sync summary date with results date */
+document.getElementById('dateInput').addEventListener('change', function() {
+  const sd = document.getElementById('summaryDate');
+  if (sd) sd.value = this.value;
+});
+
+/* Load results for today on page load */
+window.addEventListener('DOMContentLoaded', loadResults);
+</script>
+</body>
+</html>

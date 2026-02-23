@@ -1,0 +1,13 @@
+.env
+.venv/
+.c[l]aude/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+P[l]an/
+build/
+data/*.sqlite3
+.ruff_cache/
+.pytest_cache/
+*.pt
