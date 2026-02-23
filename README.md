@@ -1,4 +1,5 @@
 # ForschEule — Setup and Usage Guide (Noncommercial / academic use only)
+ForschEule (German: “Research Owl”) is a daily paper recommendation service designed for research labs working in **Biomedical** domains. Each day it automatically searches PubMed and arXiv, ranks papers against your lab’s research interests, and surfaces the **top 5** most relevant papers. To know about the project architecture, tech stack, pipeline workflow and to control what papers ForschEule recommends see the docs inside *documentations* folder. 
 
 ## Prerequisites
 
@@ -69,49 +70,15 @@ https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilitie
 
 ## Usage
 
-### Daily run (typical use)
+### Using Web console
 
-```bash
-.venv/bin/python -m forscheule run-daily
-```
-
-This fetches papers from the last 7 days, ranks them using the MedCPT
-dual-encoder, and stores the top K (default 5) for today. If a pipeline run
-for today already exists with the same configuration signature, it skips
-(idempotent). If settings have changed, it recomputes automatically.
-
-### Backfill past days
-
-```bash
-.venv/bin/python -m forscheule backfill --days 7
-```
-
-Runs the pipeline for each of the last 7 days (today through 6 days ago).
-Dates with matching configuration signatures are skipped.
-
-### Custom fetch window
-
-```bash
-.venv/bin/python -m forscheule run-daily --window 14
-```
-
-Look at papers from the last 14 days instead of the default 7.
-
-### Start the API server
-
-```bash
-.venv/bin/python -m forscheule serve
-```
-
-Or directly with uvicorn:
+1. Run the following command on a terminal from the project directory to start ForchEule UI server
 
 ```bash
 .venv/bin/uvicorn forscheule.api.app:app --host 127.0.0.1 --port 8000
 ```
 
-### Web console
-
-Open your browser and navigate to:
+2. Open your browser and navigate to:
 
 ```
 http://127.0.0.1:8000/
@@ -122,6 +89,44 @@ The web console provides a GUI for all common tasks:
 - **Weekly Summary tab**: Generate OpenAI-powered weekly digests (requires `OPENAI_API_KEY`)
 - **Run Pipeline tab**: Trigger daily runs, backfills, and summary generation jobs
 - **Settings tab**: Edit lab profile, boosted phrases, and top-K at runtime
+
+For the 1st time, you must run a pipeline from *Run Pipeline* tab. See the docs inside *documentations* folder for details. 
+
+### Using Command Line
+
+#### Daily run (typical use)
+
+```bash
+.venv/bin/python -m forscheule run-daily
+```
+
+This fetches papers from the last 7 days, ranks them using the MedCPT
+dual-encoder, and stores the top K (default 5) for today. If a pipeline run
+for today already exists with the same configuration signature, it skips
+(idempotent). If settings have changed, it recomputes automatically.
+
+#### Backfill past days
+
+```bash
+.venv/bin/python -m forscheule backfill --days 7
+```
+
+Runs the pipeline for each of the last 7 days (today through 6 days ago).
+Dates with matching configuration signatures are skipped.
+
+#### Custom fetch window
+
+```bash
+.venv/bin/python -m forscheule run-daily --window 14
+```
+
+Look at papers from the last 14 days instead of the default 7.
+
+#### Start the API server
+
+```bash
+.venv/bin/python -m forscheule serve
+```
 
 ### API endpoints
 
