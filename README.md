@@ -1,5 +1,5 @@
 # ForschEule — Setup and Usage Guide (Noncommercial / academic use only)
-ForschEule (German: “Research Owl”) is a daily paper recommendation service designed for research labs working in **Biomedical** domains. Each day it automatically searches PubMed and arXiv, ranks papers against your lab’s research interests, and surfaces the **top 5** most relevant papers. To know about the project architecture, tech stack, pipeline workflow and to control what papers ForschEule recommends see the docs inside *documentations* folder. 
+ForschEule (German: “Research Owl”) is a daily paper recommendation service designed for research labs working in **Biomedical** domains. Each day it automatically searches PubMed and arXiv, ranks papers against your lab’s research interests, and surfaces the **top 5** most relevant papers. To know about the project architecture, tech stack, pipeline workflow and to control what papers ForschEule recommends see the docs inside [documentations](https://github.com/wasimaftab/ForschEule/tree/main/documentation) folder. 
 
 ## Prerequisites
 
@@ -90,7 +90,7 @@ The web console provides a GUI for all common tasks:
 - **Run Pipeline tab**: Trigger daily runs, backfills, and summary generation jobs
 - **Settings tab**: Edit lab profile, boosted phrases, and top-K at runtime
 
-For the 1st time, you must run a pipeline from *Run Pipeline* tab. See the docs inside *documentations* folder for details. 
+For the 1st time, you must run a pipeline from *Run Pipeline* tab. See the docs inside [documentations](https://github.com/wasimaftab/ForschEule/tree/main/documentation) folder for details. 
 
 ### Using Command Line
 
